@@ -1,0 +1,403 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsenui.css">
+    <link rel="stylesheet" href="https://unpkg.com/onsenui/css/onsen-css-components.min.css">
+    <script src="https://unpkg.com/onsenui/js/onsenui.min.js"></script>
+    <script src="https://unpkg.com/jquery/dist/jquery.min.js"></script>
+    <script type="module" src="https://unpkg.com/ionicons@5.0.0/dist/ionicons/ionicons.esm.js"></script>
+    <script nomodule="" src="https://unpkg.com/ionicons@5.0.0/dist/ionicons/ionicons.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.3/dist/Chart.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script src="Init.js"></script>
+    <script src="Search.js"></script>
+    <script src="Show.js"></script>
+    <script src="Add.js"></script>
+    <script src="RemoveAll.js"></script>
+    <script src="Remove.js"></script>
+    <script src="Edit.js"></script>
+    <script src="Dialogs.js"></script>
+    <script src="graph.js"></script>
+    <script src="settings.js"></script>
+
+  <script>
+    var globalID = 0;
+    var globalPriority = "";
+    var globalWhen = 1;
+    var globalBreakFastTotal = 0;
+    var globalLunchTotal = 0;
+    var globalDinnerTotal = 0;
+    var globalTotalKcals = 0;
+    var globalActivitiesTotal = 0;
+    var globalWantedKcals = 0;
+    var globalProts = 0;
+    var globalFats = 0;
+    var globalCarbs = 0;
+    var globalFibre = 0;
+    var globalBMR = 0;
+    var globalWeight = 0;
+
+    var chart;
+    var ctx;
+    var chartConfig;
+    var chart2;
+    var ctx2;
+    var chart2Config;
+
+
+    function selectPriority(value)
+    {
+      globalPriority= value;
+    }
+
+
+
+    function itemClick(id)
+    {
+      globalID = id.toString();
+      var obj = localStorage.getItem(id);
+      var jsonObj = JSON.parse(obj);
+
+      document.getElementById("currentTaskName").value = jsonObj.text;
+      document.getElementById("currentNotes").value = jsonObj.notes;
+      document.getElementById("currentDate").value = jsonObj.date;
+
+
+      radiobtn1 = document.getElementById("current_radio_1");
+      radiobtn2 = document.getElementById("current_radio_2");
+      radiobtn3 = document.getElementById("current_radio_3");
+
+      if(jsonObj.priority == "High")
+      {
+        radiobtn3.checked = true;
+        radiobtn2.checked = false;
+        radiobtn1.checked = false;
+      }
+      else if(jsonObj.priority == "Medium")
+      {
+        radiobtn3.checked = false;
+        radiobtn2.checked = true;
+        radiobtn1.checked = false;
+      }
+      else if(jsonObj.priority == "Low")
+      {
+        radiobtn3.checked = false;
+        radiobtn2.checked = false;
+        radiobtn1.checked = true;
+      } else
+      {
+        console.log("Priority_error: prio hasnt been selected");
+        radiobtn1.checked = false;
+        radiobtn2.checked = false;
+        radiobtn3.checked = false;
+      }
+
+      var switcher = document.getElementById("currentSwitch");
+
+      if(jsonObj.vibration == true)
+      {
+        switcher.checked = true;
+      } else
+      {
+        switcher.checked = false;
+      }
+
+      document.getElementById("current_range_1").value = jsonObj.volume;
+
+      document.getElementById('item-click').show();
+
+    }
+
+
+  </script>
+
+
+  <link href="https://fonts.googleapis.com/css2?family=Vollkorn:wght@600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        rel="stylesheet">
+
+
+
+
+</head>
+
+<body>
+
+
+<ons-navigator swipeable id="myNavigator" page="page_1.html"></ons-navigator>
+
+<template id="page_1.html">
+    <ons-page id="page_1">
+
+
+        <ons-toolbar style="height:7%; background-image: linear-gradient(109.6deg, rgb(95, 207, 128) 71.8%, rgb(78, 158, 112) 71.8%);">
+          <div class="center" style="background-image: linear-gradient(109.6deg, rgb(95, 207, 128) 71.8%, rgb(78, 158, 112) 71.8%);">
+            <span style="left:6%; top:10%; position:absolute">
+            <ons-button modifier="quiet" style="background-color: transparent; cursor: pointer;  border-radius: 15%;" id="push-button1" onclick="settingsDialog();" class="button button--material">
+              <ion-icon name="settings-sharp" style="font-size: 200%; color: white !important; margin-top:50%;"></ion-icon></ons-button></span>
+            <h1 style="color: whitesmoke; font-size: 140%;"> <span class="material-icons" style="font-size: 140%; color:rgb(55,110,77);"> fastfood</span> Kalorické tabuľky</h1></div>
+        </ons-toolbar>
+
+      <span style="margin-top: 1%; margin-left: 1%; width:50%;">
+      <ons-button disabled modifier="material outline light" style="background-color: white; margin-top: 3%; margin-left: 5%; color:dimgrey; width:80%; border-radius: 10px; font-size: 120%;" id="push-button1"
+                  class="button button--material"><div style="text-align:left; ">Raňajky <span id="bftotal" style="text-align:right; font-size: 90%; font-style:italic; margin-left: 1%;">0</span><span style= "font-size: 90%; font-style:italic;"> kcal</span></div>
+      </ons-button>
+        <ons-button modifier="material" style="background-color: rgb(55,110,77); cursor: pointer; margin-top: 3%; border-radius: 15%;" id="push-button1" onclick="addMealDialog(1);" class="button button--material">
+          <ion-icon name="add-outline" style="font-size: 130%; color: white !important; margin-top:50%;"></ion-icon></ons-button>
+
+        <ons-gesture-detector style="margin-top: 1%; margin-left: 7%; margin-right: 15%;">
+          <ons-list id="mealList1" style=" background-color:transparent; text-decoration: none !important;  ">
+          </ons-list>
+        </ons-gesture-detector>
+
+      </span>
+
+      <div style="margin-left: 1%; width:100%;">
+        <ons-button disabled modifier="material outline light" style="background-color: white; margin-top: 1%; margin-left: 5%; color:dimgrey; width:80%; border-radius: 10px; font-size: 120%; text-align: left" id="push-button2"
+                    class="button button--material"><div style="text-align:left; ">Obed <span id="lunchtotal" style="text-align:right; font-size: 90%; font-style:italic; margin-left: 1%;">0</span><span style= "font-size: 90%; font-style:italic;"> kcal</span></div>
+        </ons-button>
+        <ons-button modifier="material" style="background-color: rgb(55,110,77); cursor: pointer; margin-top: 1%; border-radius: 15%;" id="push-button2" onclick="addMealDialog(2);" class="button button--material">
+          <ion-icon name="add-outline" style="font-size: 130%; color: white !important; margin-top:50%;"></ion-icon></ons-button>
+
+        <ons-gesture-detector style="margin-top: 1%; margin-left: 7%; margin-right: 15%;">
+          <ons-list id="mealList2" style=" background-color:transparent; text-decoration: none !important;  ">
+          </ons-list>
+        </ons-gesture-detector>
+      </div>
+
+      <div style="margin-left: 1%; width:100%;">
+        <ons-button disabled modifier="material outline light" style="background-color: white; margin-top: 1%; margin-left: 5%; color:dimgrey; width:80%; border-radius: 10px; font-size: 120%; text-align: left" id="push-button3"
+                    class="button button--material"><div style="text-align:left; ">Večera <span id="dinnertotal" style="text-align:right; font-size: 90%; font-style:italic; margin-left: 1%;">0</span><span style= "font-size: 90%; font-style:italic;"> kcal</span></div>
+        </ons-button>
+        <ons-button modifier="material" style="background-color: rgb(55,110,77); cursor: pointer; margin-top: 1%; border-radius: 15%;" id="push-button3" onclick="addMealDialog(3);" class="button button--material">
+          <ion-icon name="add-outline" style="font-size: 130%; color: white !important; margin-top:50%;"></ion-icon></ons-button>
+
+        <ons-gesture-detector style="margin-top: 1%; margin-left: 7%; margin-right: 15%;">
+          <ons-list id="mealList3" style=" background-color:transparent; text-decoration: none !important;  ">
+          </ons-list>
+        </ons-gesture-detector>
+
+        <ons-button disabled modifier="material outline light" style="background-color: white; margin-top: 1%; margin-left: 5%; color:dimgrey; width:80%; border-radius: 10px; font-size: 120%; text-align: left" id="push-button4"
+                    class="button button--material"><div style="text-align:left; ">Aktivity <span id="activitiesTotal" style="text-align:right; font-size: 90%; font-style:italic; margin-left: 1%;">- 0</span><span style= "font-size: 90%; font-style:italic;"> kcal</span></div>
+        </ons-button>
+        <ons-button modifier="material" style="background-color: rgb(55,110,77); cursor: pointer; margin-top: 1%; border-radius: 15%;" id="push-button3" onclick="addMealDialog(4);" class="button button--material">
+          <ion-icon name="add-outline" style="font-size: 130%; color: white !important; margin-top:50%;"></ion-icon></ons-button>
+
+        <ons-gesture-detector style="margin-top: 1%; margin-left: 7%; margin-right: 15%;">
+          <ons-list id="mealList4" style=" background-color:transparent; text-decoration: none !important;  ">
+          </ons-list>
+        </ons-gesture-detector>
+
+        <div style="margin-left: 5.3%; margin-top: 0%; width:100%;">
+        <ons-button modifier="material" style="background-color: rgb(255,152,163); cursor: pointer;" id="push-button3;" onclick="removeAll();" class="button button--material">Vyčistiť</ons-button>
+        </div>
+
+
+      </div>
+
+      <div style="text-align:left; margin-left:7%; margin-top: 1%; ">Spolu: <span id="totalKcal" style="text-align:right; font-size: 150%; font-style:italic; margin-left: 1%;">0</span>
+        <span style= "font-size: 90%; font-style:italic;"> kcal</span>
+      </div>
+
+      <div class="chart-container" style="position: relative; height:30vh; width:40vw; margin-top: 0%; margin-left: 10%">
+        <canvas id="chart" class="part"></canvas>
+        <canvas id="chart2" class="part"></canvas>
+      </div>
+
+
+
+
+
+
+      <BR><BR><BR>
+
+
+
+      <BR> <BR>
+    </ons-page>
+
+</template>
+
+
+
+<template id="page1.html"></template>
+
+<ons-dialog id="addMeal-dialog" status-bar-fill="" style="display: none; z-index: 10001; "  data-device-back-button-handler-id="1"><div class="dialog-mask" style="z-index: 20000;"></div><div class="dialog" style="z-index: 20001;"><div class="dialog-container">
+
+  <ons-toolbar style="height: auto; background-color: rgb(55,110,77); margin-bottom:5%;">
+    <div class="center"> <h1 style="color: whitesmoke; font-size: large;"> <span class="material-icons"> create </span> Zapísať položku</h1></div>
+  </ons-toolbar>
+
+
+  <div style="text-align: center; padding: 10px; margin-top: 15%;">
+    <div class="container">
+      <span class="material-icons">search <input class="search-input" autocomplete='off' type="text" id="mealNameSearched" style="height:20%;" placeholder="Nájsť potravinu alebo aktivitu " /> </span>
+      <div class="suggestions">
+      </div>
+    </div>
+    </div>
+
+  <div style="text-align: center">
+    <div id="typeOfAdd">
+      <ons-input id="mealAmount" modifier="underbar" autocomplete='off' placeholder="Váha" style="width: 50%" float="">
+        <input type="number" autocomplete='off' class="text-input text-input--underbar">
+      </ons-input>
+    </div>
+    </p>
+
+    <p style="" id="mealKcals"></p> <p style="" id="typeOfItem"></p>
+    <p style="" id="mealProts"></p><p style="" id="mealCarbs"></p>
+    <p style="" id="mealFats"></p><p style="" id="mealFibre"></p>
+
+    <br>
+
+
+  <div style="text-align: center;">
+    <p><ons-button modifier="material" id="push-button4" style="background-color: rgb(55,110,77); cursor: pointer;" onclick="addMeal(2);" class="button button--material">Zapísať</ons-button></p>
+    <p><ons-button modifier="material" id="push-button5" onclick="closeMealDialog();" style="background-color: rgb(37,74,42); cursor: pointer;" class="button button--material">Zatvoriť</ons-button></p>
+  </div>
+
+  </div>
+
+
+
+
+
+
+</div></div>
+</ons-dialog>
+
+<ons-dialog id="settings-dialog" status-bar-fill="" style="display: none; z-index: 10001; "  data-device-back-button-handler-id="1"><div class="dialog-mask" style="z-index: 20000;"></div><div class="dialog" style="z-index: 20001;"><div class="dialog-container">
+
+  <ons-toolbar style="height: 15%; background-color: rgb(55,110,77); margin-bottom:5%;">
+    <div class="center"> <h1 style="color: whitesmoke; font-size: large;"><ion-icon name="settings-sharp" style="font-size: 140%; color: white !important;"></ion-icon></span>  Nastavenia</h1></div>
+  </ons-toolbar>
+
+
+
+  <div style="text-align: center; padding: 10px; margin-top: 10%; width:100%">
+    <p>Zadajte prosím vaše údaje.</p>
+    <ons-input id="weight" modifier="underbar" autocomplete='off' type="number" placeholder="Váha" style="width: 80%" float="">
+  </ons-input>
+    <ons-input id="height" modifier="underbar" autocomplete='off' type="number" placeholder="Výška" style="width: 80%" float="">
+    </ons-input>
+    <ons-input id="age" modifier="underbar" autocomplete='off' type="number" placeholder="Vek" style="width: 80%" float="">
+    </ons-input>
+    <ons-input id="wantedKcal" modifier="underbar" autocomplete='off' type="number" placeholder="Požadované kalórie" style="width: 80%" float="">
+    </ons-input>
+
+
+    <div style="text-align: center;">
+      <p><ons-button modifier="material" id="push-button4" style="background-color: rgb(55,110,77); cursor: pointer;" onclick="settings();" class="button button--material">Nastaviť</ons-button></p>
+      <p><ons-button modifier="material" id="push-button5" onclick="closeSettingsDialog();" style="background-color: rgb(37,74,42); cursor: pointer;" class="button button--material">Zatvoriť</ons-button></p>
+    </div>
+
+  </div>
+
+
+</div></div>
+</ons-dialog>
+
+  <ons-dialog id="dialog-1" status-bar-fill="" style="display: none; z-index: 10001;" data-device-back-button-handler-id="1"><div class="dialog-mask" style="z-index: 20000;"></div><div class="dialog" style="z-index: 20001;"><div class="dialog-container">
+
+    <div style="text-align: center; padding: 10px;">
+      <p style="width: 100%">
+        <ons-input id="mealName" autocomplete='off' modifier="underbar" placeholder="Task Name" style="width: 100%" float="">
+          <input type="text" class="text-input text-input--underbar" placeholder="Task Name">
+          <span class="text-input__label text-input--underbar__label"></span>
+        </ons-input>
+        <ons-input id="Type" modifier="underbar" placeholder="Task Name" style="width: 100%" float="">
+          <input type="text" class="text-input text-input--underbar" placeholder="Task Name">
+          <span class="text-input__label text-input--underbar__label"></span>
+        </ons-input>
+      </p>
+
+
+      <p style="text-align: center">
+        <input style="font-size:200%" id="taskDate" type="date" modifier="underbar material">
+      </p>
+
+
+      <textarea class="textarea" rows="5" id="todoNotes" style="width: 100%" placeholder="Notes"></textarea>
+
+      <br> <br>
+
+
+      <ons-list class="list">
+        <ons-list-header style="font-size:100%" class="list-header"> <ion-icon name="bar-chart-outline" role="img" class="md hydrated" aria-label="bar chart outline"></ion-icon> Priority</ons-list-header>
+        <ons-list-item tappable="" class="list-item"><div class="center list-item__center">
+
+          <p style="color:dodgerblue">Low</p>
+        </div><label class="left list-item__left">
+          <ons-radio modifier="material" name="priority" input-id="radio_1" value="Low" onchange="selectPriority()" class="radio-button radio-button--material">
+            <input type="radio" class="radio-button__input radio-button--material__input" id="radio_1" name="priority" value="Low">
+            <span class="radio-button__checkmark radio-button--material__checkmark"></span>
+          </ons-radio>
+        </label></ons-list-item>
+
+        <ons-list-item tappable="" class="list-item"><div class="center list-item__center">
+
+          <p style="color:saddlebrown">Medium</p>
+        </div><label class="left list-item__left">
+          <ons-radio modifier="material" name="priority" input-id="radio_2" value="Medium" onchange="selectPriority()" class="radio-button radio-button--material">
+            <input type="radio" class="radio-button__input radio-button--material__input" id="radio_2" name="priority" value="Medium">
+            <span class="radio-button__checkmark radio-button--material__checkmark"></span>
+          </ons-radio>
+        </label></ons-list-item>
+
+        <ons-list-item tappable="" class="list-item"><div class="center list-item__center">
+
+          <p style="color:darkred">High</p>
+        </div><label class="left list-item__left">
+          <ons-radio modifier="material" name="priority" input-id="radio_3" value="High" onchange="selectPriority()" class="radio-button radio-button--material">
+            <input type="radio" class="radio-button__input radio-button--material__input" id="radio_3" name="priority" value="High">
+            <span class="radio-button__checkmark radio-button--material__checkmark"></span>
+          </ons-radio>
+        </label></ons-list-item>
+      </ons-list>
+
+      <br>
+
+      <ons-list class="list">
+        <ons-list-header style="font-size:100%" class="list-header"> <ion-icon name="notifications-outline" role="img" class="md hydrated" aria-label="notifications outline"></ion-icon> Notifications</ons-list-header>
+        <ons-list-item class="list-item"><div class="center list-item__center">
+          Enable vibration
+        </div><div class="right list-item__right">
+          <ons-switch checked="" id="switchVib" class="switch" style="touch-action: pan-y; -webkit-user-drag: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);">
+            <input type="checkbox" class="switch__input">
+            <div class="switch__toggle">
+              <div class="switch__handle">
+                <div class="switch__touch"></div>
+              </div>
+            </div>
+          </ons-switch>
+        </div>
+        </ons-list-item>
+        <ons-list-item class="list-item"><div class="center list-item__center">
+          Alert Volume
+        </div><div class="right list-item__right">
+          <ons-range modifier="material" id="range_1" style="width: 100%;" value="75" min="0" max="100" step="1" class="range range--material">
+            <input type="range" class="range__input range--material__input" max="100" min="0" step="1" value="75" style="background-size: 75% 2px;">
+            <input type="range" class="range__focus-ring range--material__focus-ring" tabindex="-1" min="0" max="100">
+          </ons-range>
+
+          <br>
+
+          <p><ons-button modifier="material" id="push-button4" style="background-color: forestgreen" onclick="addMeal(2);" class="button button--material">Add Task</ons-button></p>
+          <p><ons-button modifier="material" id="push-button5" onclick="closeDialog();" class="button button--material">Close</ons-button></p>
+
+        </div>
+
+
+        </ons-list-item>
+      </ons-list>
+    </div>
+  </div>
+  </div>
+  </ons-dialog>
+
+
+</body></html>
